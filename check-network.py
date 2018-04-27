@@ -8,5 +8,3 @@ def internet_on():
     except urllib2.URLError as err: 
 	print("Could not establish connection")
         return False
-
-internet_on()
