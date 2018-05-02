@@ -3,7 +3,6 @@ library("shinydashboard")
 library(ggplot2)
 library(RMySQL)
 library(jsonlite)
-load(url("http://s3.amazonaws.com/assets.datacamp.com/production/course_4850/datasets/movies.Rdata"))
 
 con = dbConnect(MySQL(),
                 dbname = "mikko",
