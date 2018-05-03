@@ -3,7 +3,10 @@ library("shinydashboard")
 library(ggplot2)
 library(RMySQL)
 library(jsonlite)
+<<<<<<< HEAD
 library(anytime)
+=======
+>>>>>>> 9ee36768577c790c4753a9888fc41ec8b745d79a
 
 con = dbConnect(MySQL(),
                 dbname = "mikko",
