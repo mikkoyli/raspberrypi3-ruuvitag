@@ -3,7 +3,7 @@ library("shinydashboard")
 library(ggplot2)
 library(RMySQL)
 library(jsonlite)
-load(url("http://s3.amazonaws.com/assets.datacamp.com/production/course_4850/datasets/movies.Rdata"))
+library(anytime)
 
 con = dbConnect(MySQL(),
                 dbname = "mikko",
@@ -30,9 +30,9 @@ for (i in 1:N) {
   temperature <- fromJSON(json_data[i])$temperature
   pressure <- fromJSON(json_data[i])$pressure
   humidity <- fromJSON(json_data[i])$humidity
-  print(temperature)
-  print(pressure)
-  print(humidity)
+  #print(temperature)
+  #print(pressure)
+  #print(humidity)
   if(is.null(temperature)){
     temperature <- ""
   }
@@ -47,56 +47,31 @@ for (i in 1:N) {
 
 dbDisconnect(con)
 
+print(df2[,"timestamp"])
+
 sidebar <- dashboardSidebar(
   sidebarMenu(
     # Create two `menuItem()`s, "Dashboard" and "Inputs"
-    menuItem(text = "Dashboard",
-             tabName = "dashboard"
+    menuItem(text = "Humidity",
+             tabName = "humidity"
     ), 
-    menuItem(text = "Inputs", 
-             tabName = "inputs"
-    )
+    menuItem(text = "Temperature", 
+             tabName = "temperature"
+
+    ),
+    menuItem(text = "Pressure", 
+             tabName = "pressure"
+             )
   )
 )
 header <- dashboardHeader()
 body <- dashboardBody(
   
-  sidebarPanel(
-    
-    # Select variable for y-axis
-    selectInput(inputId = "y", 
-                label = "Y-axis:",
-                choices = c("timestamp"          = "timestamp", 
-                            "deviceId" = "deviceId", 
-                            "temperature"        = "temperature", 
-                            "pressure"       = "pressure", 
-                            "humidity"              = "humidity"), 
-                selected = "temperature"),
-    
-    # Select variable for x-axis
-    selectInput(inputId = "x", 
-                label = "X-axis:",
-                choices = c("timestamp"          = "timestamp", 
-                            "deviceId" = "deviceId", 
-                            "temperature"        = "temperature", 
-                            "pressure"       = "pressure", 
-                            "humidity"              = "humidity"), 
-                selected = "timestamp"),
-    
-    # Select variable for color
-    selectInput(inputId = "z", 
-                label = "Color by:",
-                choices = c("timestamp"          = "timestamp", 
-                            "deviceId" = "deviceId", 
-                            "temperature"        = "temperature", 
-                            "pressure"       = "pressure", 
-                            "humidity"              = "humidity"), 
-                selected = "temperature")
-  ),
-  
   # Outputs
   mainPanel(
-    plotOutput(outputId = "scatterplot")
+    plotOutput(outputId = "humidity"),
+    plotOutput(outputId = "temperature"),
+    plotOutput(outputId = "pressure")
   )
   
 )
@@ -109,10 +84,21 @@ ui <- dashboardPage(header = header,
 server <- function(input, output) {
   
   # Create the scatterplot object the plotOutput function is expecting
-  output$scatterplot <- renderPlot({
+  output$humidity <- renderPlot({
     
-    ggplot(data = df2, aes_string(x = input$x, y = input$y,
-                                     color = input$z)) +
+    ggplot(data = df2, aes_string(x = "timestamp", y = "humidity")) +
+      geom_point() + theme(axis.text.x = element_text(angle = 90, hjust = 1))
+  })
+  
+  output$temperature <- renderPlot({
+    
+    ggplot(data = df2, aes_string(x = "timestamp", y = "temperature")) +
+      geom_point() + theme(axis.text.x = element_text(angle = 90, hjust = 1))
+  })
+  
+  output$pressure <- renderPlot({
+    
+    ggplot(data = df2, aes_string(x = "timestamp", y = "pressure")) +
       geom_point() + theme(axis.text.x = element_text(angle = 90, hjust = 1))
   })
 }
