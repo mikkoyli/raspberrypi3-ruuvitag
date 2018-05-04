@@ -3,10 +3,7 @@ library("shinydashboard")
 library(ggplot2)
 library(RMySQL)
 library(jsonlite)
-<<<<<<< HEAD
 library(anytime)
-=======
->>>>>>> 9ee36768577c790c4753a9888fc41ec8b745d79a
 
 con = dbConnect(MySQL(),
                 dbname = "mikko",
@@ -22,20 +19,24 @@ names(df)
 class(df)
 N <- nrow(df)
 
-df2 <- data.frame(timestamp=rep("", N), deviceId=rep("", N), temperature=rep("", N), pressure=rep("", N), humidity=rep("", N),  # as many cols as you need
+df2 <- data.frame(timestamp=rep(0, N), deviceId=rep("", N), temperature=rep(0, N), pressure=rep(0, N), humidity=rep(0, N),  # as many cols as you need
                   stringsAsFactors=FALSE) 
 
 json_data <- df[,c("data")]
 json_data
 for (i in 1:N) {
-  timestamp <- df$timestamp[i]
+  timestamp <- anytime(strtoi(df$timestamp[i]))
   deviceId <- df$deviceId[i]
   temperature <- fromJSON(json_data[i])$temperature
   pressure <- fromJSON(json_data[i])$pressure
   humidity <- fromJSON(json_data[i])$humidity
+  #print(timestamp)
   #print(temperature)
   #print(pressure)
   #print(humidity)
+  if(is.null(timestamp)){
+    timestamp <- ""
+  }
   if(is.null(temperature)){
     temperature <- ""
   }
@@ -45,12 +46,16 @@ for (i in 1:N) {
   if(is.null(humidity)){
     humidity <- ""
   }
-  df2[i, ] <- list(timestamp, deviceId, temperature, pressure, humidity)
+  df2[i, ] <- list(anytime(timestamp), deviceId, temperature, pressure, humidity)
 }
 
 dbDisconnect(con)
-
-print(df2[,"timestamp"])
+sapply(df2, typeof)
+df2[,"timestamp"] = anytime(df2[,"timestamp"])
+last_day_time <- Sys.time() - as.difftime(24, unit="hours")
+last_month_time <- Sys.time() - as.difftime(30, unit="days")
+last_day <- subset(df2, timestamp > last_day_time )
+last_month <- subset(df2, timestamp > last_month_time )
 
 sidebar <- dashboardSidebar(
   sidebarMenu(
@@ -70,12 +75,37 @@ sidebar <- dashboardSidebar(
 header <- dashboardHeader()
 body <- dashboardBody(
   
-  # Outputs
-  mainPanel(
-    plotOutput(outputId = "humidity"),
-    plotOutput(outputId = "temperature"),
-    plotOutput(outputId = "pressure")
+  tabItems(
+    
+    tabItem(tabName = "humidity" ,
+            h2("monthly"),
+            plotOutput(outputId = "humidity"),
+            h2("day"),
+            plotOutput(outputId = "humidity_day")
+    ),
+    
+    tabItem(tabName = "temperature",
+            h2("monthly"),
+            plotOutput(outputId = "temperature"),
+            h2("day"),
+            plotOutput(outputId = "temperature_day")
+    ),
+    
+    tabItem(tabName = "pressure", 
+            h2("month"),
+            plotOutput(outputId = "pressure"),
+            h2("day"),
+            plotOutput(outputId = "pressure_day")
+    )
+    
   )
+  
+  # Outputs
+  ##mainPanel(
+    ##plotOutput(outputId = "humidity"),
+    ##plotOutput(outputId = "temperature"),
+    ##plotOutput(outputId = "pressure")
+  #)
   
 )
 
@@ -86,23 +116,42 @@ ui <- dashboardPage(header = header,
 
 server <- function(input, output) {
   
-  # Create the scatterplot object the plotOutput function is expecting
+  # monthly
   output$humidity <- renderPlot({
     
-    ggplot(data = df2, aes_string(x = "timestamp", y = "humidity")) +
-      geom_point() + theme(axis.text.x = element_text(angle = 90, hjust = 1))
+    ggplot(data = last_month, aes_string(x = "timestamp", y = "humidity")) +
+      geom_point() + geom_line() + theme(axis.text.x = element_text(angle = 90, hjust = 1))
   })
   
   output$temperature <- renderPlot({
     
-    ggplot(data = df2, aes_string(x = "timestamp", y = "temperature")) +
-      geom_point() + theme(axis.text.x = element_text(angle = 90, hjust = 1))
+    ggplot(data = last_month, aes_string(x = "timestamp", y = "temperature")) +
+      geom_point() + geom_line() + theme(axis.text.x = element_text(angle = 90, hjust = 1))
   })
   
   output$pressure <- renderPlot({
     
-    ggplot(data = df2, aes_string(x = "timestamp", y = "pressure")) +
-      geom_point() + theme(axis.text.x = element_text(angle = 90, hjust = 1))
+    ggplot(data = last_month, aes_string(x = "timestamp", y = "pressure")) +
+      geom_point() + geom_line() + theme(axis.text.x = element_text(angle = 90, hjust = 1))
+  })
+  
+  # daily
+  output$humidity_day <- renderPlot({
+    
+    ggplot(data = last_day, aes_string(x = "timestamp", y = "humidity")) +
+      geom_point() + geom_line() + theme(axis.text.x = element_text(angle = 90, hjust = 1))
+  })
+  
+  output$pressure_day <- renderPlot({
+    
+    ggplot(data = last_day, aes_string(x = "timestamp", y = "pressure")) +
+      geom_point() + geom_line() + theme(axis.text.x = element_text(angle = 90, hjust = 1))
+  })
+  
+  output$temperature_day <- renderPlot({
+    
+    ggplot(data = last_day, aes_string(x = "timestamp", y = "temperature")) +
+      geom_point() + geom_line() + theme(axis.text.x = element_text(angle = 90, hjust = 1))
   })
 }
 
