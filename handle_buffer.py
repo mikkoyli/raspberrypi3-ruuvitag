@@ -1,7 +1,17 @@
+import json
+import urllib.request
+
+with open('./config.json') as json_data_file:
+    data = json.load(json_data_file)
+
+serverUrl=data['variables']['server-url']
+bufferFile=data['variables']['buffer-file']
+tableName=data['variables']['table-name']
+
 to_be_inserted = []
 
 try:
-    with open('./buffer.txt') as f:
+    with open(bufferFile) as f:
         for line in f:
             print(line)
             try:
@@ -30,7 +40,7 @@ except IOError:
       print("buffer file doesn't exist")
 
 if len(to_be_inserted) > 0:
-    f = open('buffer.txt', 'w')
+    f = open(bufferFile, 'w')
     i = 0
     while i < len(to_be_inserted):
         print(to_be_inserted[i])
@@ -39,4 +49,5 @@ if len(to_be_inserted) > 0:
         i += 1
     f.close
 else:
+    open(bufferFile, 'w').close()
     print('nothing to insert in file')

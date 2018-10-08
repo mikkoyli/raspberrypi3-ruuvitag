@@ -8,6 +8,13 @@ from ruuvitag_sensor.log import log
 from ruuvitag_sensor.ruuvi import RuuviTagSensor
 from ruuvitag_sensor.ruuvitag import RuuviTag
 
+with open('./config.json') as json_data_file:
+    data = json.load(json_data_file)
+
+serverUrl=data['variables']['server-url']
+bufferFile=data['variables']['buffer-file']
+tableName=data['variables']['table-name']
+
 ruuvitag_sensor.log.enable_console()
 
 # Beacon mac address
@@ -16,7 +23,6 @@ sensor = RuuviTag('E0:F2:07:84:6D:11')
 # Unique identifier generated from hostname
 uuid = uuid.uuid3(uuid.NAMESPACE_DNS, 'localhost')
 # Table name for saving data
-table = "RuuviTagtest"
 
 # update state from the device
 state = sensor.update()
@@ -28,9 +34,8 @@ state = sensor.state
 double_encode = json.dumps(state)
 
 # generate json
-serverUrl = 'https://co2.awareframework.com:8443/insert/'
 jsonData = {"deviceId": str(uuid),
-    "tableName": table,
+    "tableName": tableName,
     "timestamp": int(time.time()),
     "data": double_encode
 }
@@ -58,7 +63,7 @@ try:
         raise ValueError('wtf error')
 
 except:
-    f = open('buffer.txt', 'a')
+    f = open(bufferFile, 'a')
     f.write(str(json.dumps(jsonData)) + '\n' )
     print('data written to file')
     f.close
