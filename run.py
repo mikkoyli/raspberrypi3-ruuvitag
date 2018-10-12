@@ -14,11 +14,12 @@ with open('./config.json') as json_data_file:
 serverUrl=data['variables']['server-url']
 bufferFile=data['variables']['buffer-file']
 tableName=data['variables']['table-name']
+sensorMac=data['variables']['sensor-mac']
 
 ruuvitag_sensor.log.enable_console()
 
 # Beacon mac address
-sensor = RuuviTag('E0:F2:07:84:6D:11')
+sensor = RuuviTag(sensorMac)
 
 # Unique identifier generated from hostname
 uuid = uuid.uuid3(uuid.NAMESPACE_DNS, 'localhost')
