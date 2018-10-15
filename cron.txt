@@ -1,2 +1,2 @@
-0,30 * * * * python3 /home/pi/raspberrypi3-ruuvitag/run.py
-0 22 * * * python3 /home/pi/raspberrypi3-ruuvitag/handle_buffer.py
+0,30 * * * * python3 /home/pi/run.py
+0 22 * * * python3 /home/pi/handle_buffer.py

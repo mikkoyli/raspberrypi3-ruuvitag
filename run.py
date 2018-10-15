@@ -15,15 +15,15 @@ serverUrl=data['variables']['server-url']
 bufferFile=data['variables']['buffer-file']
 tableName=data['variables']['table-name']
 sensorMac=data['variables']['sensor-mac']
+sensorUuid=data['variables']['uuid']
 
 ruuvitag_sensor.log.enable_console()
 
 # Beacon mac address
 sensor = RuuviTag(sensorMac)
 
-# Unique identifier generated from hostname
-uuid = uuid.uuid3(uuid.NAMESPACE_DNS, 'localhost')
-# Table name for saving data
+# Unique identifier generated from mac address
+uuid = sensorUuid
 
 # update state from the device
 state = sensor.update()
